@@ -39,7 +39,7 @@ const fileToGenerativePart = async (file: File) => {
 export const getOcrDataFromImage = async (imageFile: File): Promise<any> => {
     try {
         const imagePart = await fileToGenerativePart(imageFile);
-        const prompt = `Analyze this image of a pharmacy stock list or invoice. Extract all medicine details. Return a valid JSON array of objects. Each object must have these keys: 'name' (string), 'manufacturer' (string), 'stock' (number), 'price' (number), 'expiryDate' (string, 'YYYY-MM-DD' format). If a value is missing for manufacturer, use 'Unknown'. If other values are missing, use a reasonable default or null.`;
+        const prompt = `Analyze this image of a pharmacy stock list or invoice. Extract all medicine details. Return a valid JSON array of objects. Each object must have these keys: 'name' (string), 'manufacturer' (string), 'stock' (number), 'mrp' (number, Maximum Retail Price), 'expiryDate' (string, 'YYYY-MM-DD' format), 'category' (string, e.g., 'Painkiller', 'Antibiotic'), 'batchNumber' (string), 'hsnCode' (string). If a value is missing, use a reasonable default like 'Unknown' or null.`;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
@@ -57,10 +57,13 @@ export const getOcrDataFromImage = async (imageFile: File): Promise<any> => {
                             name: { type: Type.STRING },
                             manufacturer: { type: Type.STRING },
                             stock: { type: Type.NUMBER },
-                            price: { type: Type.NUMBER },
+                            mrp: { type: Type.NUMBER },
                             expiryDate: { type: Type.STRING },
+                            category: { type: Type.STRING },
+                            batchNumber: { type: Type.STRING },
+                            hsnCode: { type: Type.STRING },
                         },
-                        required: ["name", "stock", "price", "expiryDate"]
+                        required: ["name", "stock", "mrp", "expiryDate", "batchNumber", "hsnCode"]
                     }
                 }
             }

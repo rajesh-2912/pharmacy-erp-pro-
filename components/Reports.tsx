@@ -42,26 +42,31 @@ const Reports: React.FC = () => {
             const start = startDate ? new Date(startDate) : null;
             const end = endDate ? new Date(endDate) : null;
             if (start && saleDate < start) return false;
-            if (end && saleDate > end) return false;
+            if (end) {
+                const endOfDay = new Date(end);
+                endOfDay.setHours(23, 59, 59, 999);
+                if (saleDate > endOfDay) return false;
+            }
             return true;
         });
 
         const salesData = filteredSales.flatMap(sale => 
-            sale.items.map(item => {
-                const medicine = medicines.find(m => m.id === item.medicineId);
-                return {
-                    saleId: sale.id,
-                    date: new Date(sale.date).toLocaleString(),
-                    customerName: sale.customer.name,
-                    customerPhone: sale.customer.phone,
-                    medicineName: medicine?.name || 'N/A',
-                    quantity: item.quantity,
-                    pricePerUnit: item.price.toFixed(2),
-                    lineItemTotal: (item.quantity * item.price).toFixed(2),
-                    saleDiscountPercentage: sale.discountPercentage,
-                    saleTotal: sale.total.toFixed(2),
-                };
-            })
+            sale.items.map(item => ({
+                saleId: sale.id,
+                date: new Date(sale.date).toLocaleString(),
+                customerName: sale.customer.name,
+                customerPhone: sale.customer.phone,
+                medicineName: item.name,
+                batchNumber: item.batchNumber,
+                hsnCode: item.hsnCode,
+                quantity: item.quantity,
+                mrpPerUnit: item.mrp.toFixed(2),
+                pricePerUnitAfterDiscount: item.price.toFixed(2),
+                lineItemTotal: (item.quantity * item.mrp).toFixed(2),
+                saleDiscountPercentage: sale.discountPercentage,
+                saleTotalSavings: sale.totalSavings.toFixed(2),
+                saleTotal: sale.total.toFixed(2),
+            }))
         );
 
         downloadCSV(salesData, `sales_report_${startDate}_to_${endDate}.csv`);
@@ -73,7 +78,11 @@ const Reports: React.FC = () => {
             const start = startDate ? new Date(startDate) : null;
             const end = endDate ? new Date(endDate) : null;
             if (start && saleDate < start) return false;
-            if (end && saleDate > end) return false;
+            if (end) {
+                const endOfDay = new Date(end);
+                endOfDay.setHours(23, 59, 59, 999);
+                if (saleDate > endOfDay) return false;
+            }
             return true;
         });
 
@@ -122,7 +131,7 @@ const Reports: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex gap-4">
-                         <button onClick={generateSalesReport} className="flex-1 flex items-center justify-center px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600">
+                         <button onClick={generateSalesReport} className="flex-1 flex items-center justify-center px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600">
                             <Download className="w-5 h-5 mr-2" /> Download Sales Report
                         </button>
                          <button onClick={generateTaxReport} className="flex-1 flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600">
